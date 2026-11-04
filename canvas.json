@@ -1,0 +1,17 @@
+{
+  "repository": "raztor/contribution-canvas",
+  "pixels_repository": "raztor/contribution-canvas-pixels",
+  "username": "raztor",
+  "text": "RAZTOR",
+  "email": "71042858+raztor@users.noreply.github.com",
+  "source_branch": "engine",
+  "canvas_branch": "main",
+  "state_branch": "state",
+  "contrast_multiplier": 2.2,
+  "auto_calibration_attempts": 2,
+  "max_commits_per_day": 2000,
+  "max_commits_total": 200000,
+  "minimum_edge_success": 0.95,
+  "minimum_level_gap": 2,
+  "indexing_timeout_hours": 24
+}

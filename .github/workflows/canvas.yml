@@ -1,0 +1,83 @@
+name: Contribution canvas
+
+on:
+  push:
+    branches: [engine]
+  pull_request:
+    branches: [engine]
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'auto verifies/recenters; refresh redraws; clear suspends; resume enables'
+        type: choice
+        options: [auto, refresh, clear, resume]
+        default: auto
+
+permissions:
+  contents: read
+
+concurrency:
+  group: contribution-canvas-${{ github.event_name == 'pull_request' && github.event.pull_request.number || 'main' }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - run: python3 -m unittest discover -s tests -v
+  render:
+    needs: verify
+    if: github.repository == 'raztor/contribution-canvas' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: write
+    steps:
+      - name: Check out the maintained engine
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: engine
+          fetch-depth: 0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Reconcile the public calendar
+        env:
+          CANVAS_ADMIN_TOKEN: ${{ secrets.CANVAS_ADMIN_TOKEN }}
+          CANVAS_MODE: ${{ inputs.mode || 'auto' }}
+          PYTHONUNBUFFERED: '1'
+        run: python3 rotate.py --mode "$CANVAS_MODE" --wait-seconds 900
+      - name: Record summary
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          p = Path('.runtime/state.json')
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as out:
+              out.write('## RAZTOR contribution artwork\n\n')
+              if p.exists():
+                  s = json.loads(p.read_text())
+                  out.write(f'Phase: **{s["phase"]}**\n\n')
+                  if 'plan' in s:
+                      out.write(f'Empty commits: {s["plan"]["total"]:,}; width: {s["plan"]["width"]} weeks.\n\n')
+                  if 'metrics' in s:
+                      out.write('Measured contrast: `' + json.dumps(s['metrics']) + '`.\n\n')
+              out.write('[Profile](https://github.com/raztor) · [Persistent receipt](https://github.com/raztor/contribution-canvas/blob/state/state.json)\n')
+          PY
+      - name: Upload receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: canvas-receipt-${{ github.run_id }}
+          path: .runtime/
+          include-hidden-files: true
+          retention-days: 30
+          if-no-files-found: ignore
