@@ -93,6 +93,17 @@ class GuardTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 rotate.GitHub("test-only-value").api("/repos/" + rotate.ALLOWED_PIXELS, missing=True)
 
+    def test_push_diagnostics_do_not_expose_credentials(self):
+        import base64, subprocess
+        token = "test-only-private-credential"
+        basic = base64.b64encode(("x-access-token:" + token).encode()).decode()
+        error = subprocess.CalledProcessError(128, ["git", "push"], stderr=f"Authorization: basic {basic}\nfailed with {token}")
+        with patch.object(canvas, "git", side_effect=error):
+            with self.assertRaises(ValueError) as result:
+                rotate.push_pixels("head", token)
+        self.assertNotIn(token, str(result.exception))
+        self.assertNotIn(basic, str(result.exception))
+
     def test_deletion_requires_exact_numeric_identity_and_head(self):
         state = ready_state()
         api = FakeAPI(state)

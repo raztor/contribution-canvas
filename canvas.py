@@ -258,6 +258,8 @@ class Store:
                 self.refs[key] = ""
         if not self.refs["source_branch"]:
             raise ValueError("The engine branch must exist")
+        if git("rev-parse", "HEAD") != self.refs["source_branch"]:
+            raise ValueError("Engine changed during execution; restart from the current engine revision")
 
     def load(self):
         if not self.refs.get("state_branch"):

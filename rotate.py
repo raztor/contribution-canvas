@@ -8,6 +8,7 @@ import datetime as dt
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 import time
@@ -122,11 +123,19 @@ def bootstrap(store, state):
 def push_pixels(head, token):
     # Override checkout's source-only credential without exposing secrets in argv or URLs.
     basic = base64.b64encode(("x-access-token:" + token).encode()).decode()
-    env = dict(os.environ, GIT_CONFIG_COUNT="1",
+    env = dict(os.environ, GIT_CONFIG_COUNT="2",
         GIT_CONFIG_KEY_0="http.https://github.com/.extraheader",
-        GIT_CONFIG_VALUE_0="AUTHORIZATION: basic " + basic)
-    canvas.git("push", "https://github.com/" + ALLOWED_PIXELS + ".git",
-               "--force-with-lease=refs/heads/main:", head + ":refs/heads/main", env=env)
+        GIT_CONFIG_VALUE_0="",
+        GIT_CONFIG_KEY_1="http.https://github.com/.extraheader",
+        GIT_CONFIG_VALUE_1="AUTHORIZATION: basic " + basic)
+    try:
+        canvas.git("push", "https://github.com/" + ALLOWED_PIXELS + ".git",
+                   "--force-with-lease=refs/heads/main:", head + ":refs/heads/main", env=env)
+    except subprocess.CalledProcessError as exc:
+        error = exc.stderr.decode(errors="replace") if isinstance(exc.stderr, bytes) else (exc.stderr or "")
+        error = error.replace(token, "***").replace(basic, "***")
+        error = re.sub(r"(?i)(authorization:\s*)[^\r\n]+", r"\1***", error)
+        raise ValueError("Pixel push failed: " + error[-1000:]) from None
 
 
 def key(config, source):
