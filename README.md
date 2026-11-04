@@ -42,7 +42,7 @@ Open [Actions → Contribution canvas](https://github.com/raztor/contribution-ca
 | `clear` | Delete the disposable picture, confirm removal and persistently suspend rendering. |
 | `resume` | Enable drawing again after `clear`. |
 
-Disabling the workflow stops future runs immediately, but existing artwork remains until `clear` completes. Do not delete the state branch or repeatedly refresh to bypass a pending index. Inspect the receipt and logs if a run fails. If an unexpected modification prevents deletion, preserve that content and resolve it deliberately.
+Disabling the workflow stops future runs immediately, but existing artwork remains until `clear` completes. A manual clear/refresh request is preserved while indexing is pending, including across later scheduled runs. Do not delete the state branch or repeatedly refresh to bypass a pending index. Inspect the receipt and logs if a run fails. If an unexpected modification prevents deletion, preserve that content and resolve it deliberately.
 
 ## Configuration and credentials
 

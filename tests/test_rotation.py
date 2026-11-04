@@ -83,6 +83,16 @@ class GuardTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             rotate.GitHub(None)
 
+    def test_empty_repository_ref_409_is_recoverable(self):
+        import urllib.error
+        path = "/repos/" + rotate.ALLOWED_PIXELS + "/git/ref/heads/main"
+        error = urllib.error.HTTPError("https://api.github.com" + path, 409, "Git Repository is empty", {}, None)
+        with patch.object(rotate.urllib.request, "urlopen", side_effect=error):
+            self.assertIsNone(rotate.GitHub("test-only-value").api(path, missing=True))
+        with patch.object(rotate.urllib.request, "urlopen", side_effect=error):
+            with self.assertRaises(ValueError):
+                rotate.GitHub("test-only-value").api("/repos/" + rotate.ALLOWED_PIXELS, missing=True)
+
     def test_deletion_requires_exact_numeric_identity_and_head(self):
         state = ready_state()
         api = FakeAPI(state)
@@ -119,6 +129,28 @@ class RecoveryTests(unittest.TestCase):
         with patch.object(canvas, "fetch_calendar", return_value=calendar()):
             state = rotate.step(CONFIG, api)
         self.assertEqual(state["phase"], "published")
+        self.assertEqual(api.calls, [])
+
+    def test_clear_request_survives_an_unindexed_picture(self):
+        state = ready_state()
+        state["phase"] = "published"
+        FakeStore.receipt = state
+        api = FakeAPI(state)
+        with patch.object(canvas, "fetch_calendar", return_value=calendar()):
+            result = rotate.step(CONFIG, api, "clear")
+        self.assertEqual(result["requested_mode"], "clear")
+        with patch.object(canvas, "fetch_calendar", return_value=canvas.predicted_days(state["plan"])):
+            result = rotate.step(CONFIG, api)
+        self.assertEqual(result["phase"], "deleting")
+        self.assertTrue(result["stop"])
+        self.assertFalse(api.existing)
+
+    def test_resume_does_not_redraw_an_already_active_picture(self):
+        state = ready_state()
+        api = FakeAPI(state)
+        with patch.object(canvas, "fetch_calendar", return_value=canvas.predicted_days(state["plan"])):
+            result = rotate.step(CONFIG, api, "resume")
+        self.assertEqual(result["phase"], "ready")
         self.assertEqual(api.calls, [])
 
     def test_clear_waits_for_actual_removal_then_stays_suspended(self):

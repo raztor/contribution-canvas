@@ -48,7 +48,8 @@ class GitHub:
                 data = response.read()
                 return json.loads(data) if data else None
         except urllib.error.HTTPError as exc:
-            if missing and exc.code == 404:
+            empty_ref = exc.code == 409 and path == "/repos/" + ALLOWED_PIXELS + "/git/ref/heads/main"
+            if missing and (exc.code == 404 or empty_ref):
                 return None
             # Never print request headers or credential values.
             raise ValueError(f"GitHub API {method} {path} returned HTTP {exc.code}") from None
@@ -145,9 +146,19 @@ def step(config, api, mode="auto"):
     days = canvas.fetch_calendar(config["username"])
     phase = state["phase"]
     source = store.refs["source_branch"]
+    # Persist manual intent across delayed indexing and subsequent scheduled runs.
+    if mode in ("clear", "refresh") and phase in ("creating", "published", "ready", "contrast_insufficient"):
+        state["requested_mode"] = mode
+        store.save(state, canvas.render_svg(days, title="RAZTOR · manual request pending"))
+    if mode == "clear" and phase == "deleting":
+        state["stop"] = True
+        store.save(state, canvas.render_svg(days, title="RAZTOR · suspension pending"))
+    if mode == "resume" and phase != "disabled":
+        mode = "auto"
     if phase == "disabled" and mode not in ("resume", "refresh"):
         return state
     if phase in ("published", "ready", "contrast_insufficient"):
+        mode = state.get("requested_mode", mode)
         if not canvas.indexed(days, state["plan"]):
             canvas.pending(state, config, "Artwork is still being indexed")
             return state
@@ -174,6 +185,7 @@ def step(config, api, mode="auto"):
                 raise ValueError("Cannot infer a safe preflight baseline")
             canvas.make_plan(baseline, calibrated(config, next_round))
         safe_to_delete(api, state)
+        state.pop("requested_mode", None)
         state.update(phase="deleting", before=days, clearing_started_at=canvas.now(), stop=mode == "clear",
                      next_calibration_round=next_round)
         store.save(state, canvas.render_svg(days, title="RAZTOR · replacement requested"))

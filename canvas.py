@@ -91,7 +91,7 @@ def parse_calendar(html):
             raise ValueError("Invalid contribution count or level")
         days.append({"date": date.isoformat(), "count": count, "level": level})
     days.sort(key=lambda day: day["date"])
-    if not 350 <= len(days) <= 371 or len({d["date"] for d in days}) != len(days):
+    if not 365 <= len(days) <= 371 or len({d["date"] for d in days}) != len(days):
         raise ValueError("Incomplete or duplicated contribution calendar")
     start = dt.date.fromisoformat(days[0]["date"])
     if start.weekday() != 6:
