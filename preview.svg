@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="770" height="154" viewBox="0 0 770 154">
 <style>text{font-family:system-ui,sans-serif;fill:#c9d1d9}</style>
 <rect width="770" height="154" rx="8" fill="#0d1117"/>
-<text x="14" y="22" font-size="13">RAZTOR · estimated preview, awaiting indexing</text>
+<text x="14" y="22" font-size="13">RAZTOR · measured public GitHub calendar</text>
 <rect x="14" y="34" width="11" height="11" rx="2" fill="#0e4429"><title>2025-11-02: 5 contributions, level 1</title></rect>
 <rect x="14" y="48" width="11" height="11" rx="2" fill="#0e4429"><title>2025-11-03: 9 contributions, level 1</title></rect>
 <rect x="14" y="62" width="11" height="11" rx="2" fill="#0e4429"><title>2025-11-04: 9 contributions, level 1</title></rect>
@@ -369,5 +369,5 @@
 <rect x="742" y="34" width="11" height="11" rx="2" fill="#006d32"><title>2026-11-01: 252 contributions, level 2</title></rect>
 <rect x="742" y="48" width="11" height="11" rx="2" fill="#006d32"><title>2026-11-02: 300 contributions, level 2</title></rect>
 <rect x="742" y="62" width="11" height="11" rx="2" fill="#0e4429"><title>2026-11-03: 53 contributions, level 1</title></rect>
-<rect x="742" y="76" width="11" height="11" rx="2" fill="#0e4429"><title>2026-11-04: 68 contributions, level 1</title></rect>
+<rect x="742" y="76" width="11" height="11" rx="2" fill="#0e4429"><title>2026-11-04: 69 contributions, level 1</title></rect>
 <text x="14" y="145" font-size="10">Public GitHub calendar · synthetic commits are labelled as artwork</text></svg>
