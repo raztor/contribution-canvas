@@ -1,5 +1,5 @@
 {
-  "phase": "published",
+  "phase": "ready",
   "plan": {
     "grid_start": "2025-11-23",
     "grid_end": "2026-11-22",
@@ -2039,6 +2039,12 @@
   "head": "6ff6ac2c5e808b39a0ad174f3dca556397f275e7",
   "schema": 1,
   "repository": "raztor/contribution-canvas",
-  "updated_at": "2026-11-22T19:37:53.082453+00:00",
-  "repository_id": 1467919463
+  "updated_at": "2026-11-22T19:40:10.570371+00:00",
+  "repository_id": 1467919463,
+  "metrics": {
+    "edge_success": 1.0,
+    "edges": 193,
+    "minimum_ink_level": 4,
+    "sufficient": true
+  }
 }
